@@ -1,5 +1,5 @@
 
-let contenu_api=[];
+let contenu_api;
 /*
 Cette fonction va permettre d'afficher tout les items de la page.
 
@@ -39,12 +39,7 @@ newItem= function(item_informations)
 }
 
 
-/*Fonction récupérant le contenu de l'API, initialement je pensais pouvoir récupéré le résultat dans une variable et faire tout le travail nécessaire à la suite.
-N'y arrivant pas de la manière voulue, je dois faire tout le traitement au niveau du .then(function(value)).
-Je garde la structure d'une fonction pour ne pas oublier de demander ce qu'il en est à Damien.
-L'intégralité du travail va donc se faire par l'appel de fonctions dans cette partie.
-*/
-function recuperation(contenu)
+function recuperation()
 {
     fetch("http://localhost:3000/api/products")
     .then(function(res) {
@@ -52,18 +47,11 @@ function recuperation(contenu)
         return res.json();
       }
     })
-    .then(function(value) {
-      /*On parcours tout les éléments et on les affiche via la fonction newItem*/
+    .then(function(value) {//On parcourt tous les éléments et on les affiche via la fonction newItem
       for(article of value)
       {
         newItem(article);
       }
-      /*
-      contenu=value;
-      for(let i=0;i<contenu.length;i++)
-      {
-        newItem(contenu[i]);
-      }*/
       return value;
     })
     .catch(function(err) {
@@ -71,4 +59,7 @@ function recuperation(contenu)
     });
 }
 
-contenu_api=recuperation(contenu_api);
+
+recuperation();
+
+
