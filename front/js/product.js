@@ -66,20 +66,27 @@ function checkItemsTab(orderTab, actualItem) {
 
 let submit_item = function (article_id, orderTab) {
     /* Récupération des éléments du formulaire*/
-    let color_item = document.getElementById("colors").value;
-    let quantity_item = parseInt(document.getElementById("quantity").value, 10);
-    /* Création d'un nouvel item et vérification si ce dernier existe*/
-    nouvelItem = new item(id_article, color_item, quantity_item);
-  
+    let color_item = document.getElementById("colors");
+    let quantity_item = document.getElementById("quantity");
+    if (quantity_item.value <= 0 || color_item.value == "") {
+        if (quantity_item.value <= 0) {
+            quantity_item.style.backgroundColor = ("red")
+        }
+        if (color_item.value == "") {
+            color_item.style.backgroundColor = ("red")
+        }
+    }
+    else {
+        /* Création d'un nouvel item et vérification si ce dernier existe*/
+        nouvelItem = new item(id_article, color_item.value, parseInt(quantity_item.value, 10));
         if (!checkItemsTab(orderTab, nouvelItem)) {
             orderTab.push(nouvelItem);
-      }
-    local.clear();/* On vide le local storage avant de mettre le nouveau tableau */
-    local.setItem("orderTab", JSON.stringify(orderTab));
-}
-/* ---------------- FIN DES FONCTIONS-------------------*/
+            local.clear();/* On vide le local storage avant de mettre le nouveau tableau */
+            local.setItem("orderTab", JSON.stringify(orderTab));
+        }
+    }
 
-/* Le contenu de l'api n'est pas récupérable, il  faut voir avec Damien ce qu'il en est*/
+}
 
 recuperation(id_article);
 
