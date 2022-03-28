@@ -2,6 +2,7 @@
 let compteurArticle = 0, compteurPrix = 0, orderTab = JSON.parse(localStorage.getItem("orderTab"));
 let firstNameField = document.getElementById("firstName"), lastNameField = document.getElementById("lastName"), addressField = document.getElementById("address");
 let cityField = document.getElementById("city"), emailField = document.getElementById("email");
+let inputValidity=[0,0,0,0,0];
 let validityForm = 0;
 
 
@@ -107,27 +108,29 @@ function validInput() {
     new RegExp(/[0-9^\&\~\#\(\)\@\]\[\|\$\µ\!\§\;\\\/]/),
     new RegExp(/.{33}/),//si plus de 33 caractères, trop de format d'adresse différent possible
     new RegExp(/^[0-9]{5}\s{1,1}[a-zA-Z]{1,26}/),
-    new RegExp(/^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$/)
-    ];
+    new RegExp(/^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,15}$/)];
 
     for (let i = 0; i < fields.length; i++) {
         fields[i].addEventListener("input", function (e) {
             if (i < 3) {
                 if (regexs[i].test(fields[i].value)) {
                     fields[i].nextSibling.nextSibling.textContent = "Veuillez vérifier l'information saisie.";
+                    inputValidity[i]=0;
                 }
                 else {
                     fields[i].nextSibling.nextSibling.textContent = "";
-
+                    inputValidity[i]=1;
                 }
             }
             else {
                 if (!regexs[i].test(fields[i].value)) {
 
                     fields[i].nextSibling.nextSibling.textContent = "Champs incomplet ou incorrect";
+                    inputValidity[i]=0;
                 }
                 else {
                     fields[i].nextSibling.nextSibling.textContent = "";
+                    inputValidity[i]=1;
                 }
             }
         });
@@ -141,11 +144,11 @@ function createOrder() {
         products.push(cases.id);
     }
     let contact = {
-        firstName: document.getElementById("firstName").value,
-        lastName: document.getElementById("lastName").value,
-        address: document.getElementById("address").value,
-        city: document.getElementById("city").value,
-        email: document.getElementById("email").value
+        firstName: firstNameField.value,
+        lastName: lastNameField.value,
+        address: addressField.value,
+        city: cityField.value,
+        email: emailField.value
     }
     let finalOrder = { contact, products };
     sendOrderToServer(finalOrder);
@@ -163,13 +166,13 @@ async function sendOrderToServer(finalOrder) {
             },
             body: JSON.stringify(finalOrder)
         })
-    let response = fetch(request)
-        .then(function (res) {
+    let response = await fetch(request)
+        .then(await function(res) {
             if (res.ok) {
                 return res.json();
             }
         })
-        .then(function (value) {
+        .then(await function (value) {
             localStorage.clear();//on vide le panier.
             localStorage.setItem('id', value.orderId);//on enregistre l'id de la commande.
             document.location.href = 'confirmation.html'//on redirige vers la page de confirmation.
@@ -177,8 +180,15 @@ async function sendOrderToServer(finalOrder) {
 
 }
 function checkCommandBtn(orderTab) {
-    let btn = document.getElementById("order");
-    btn.addEventListener("click", function (e) {
+    document.getElementById("order").addEventListener("click", function (e) {
+        e.preventDefault();
+        validityForm=0;
+        for (let i=0;i<inputValidity.length;i++)/*Chaque champ valide ajoute 1 points, si on obtient 5 tout les champs sont valides*/
+        {
+            console.log(i);
+            validityForm+=inputValidity[i]
+        }
+        if(validityForm==5)/* S'ils le sont alors on peu créer la commande.*/
         createOrder(orderTab);
     });
 }
@@ -200,12 +210,14 @@ fetch("http://localhost:3000/api/products/")
                 }
             }
         }
+        console.log(inputValidity);
+        console.log(typeof inputValidity)
+        console.log(inputValidity.length)
         detectDeleteBtn(value);
         detectQuantityChange(value);
         priceCart(value);
-        validInput();
+        validInput(); 
         checkCommandBtn(orderTab);
-        
     })
     .catch(function (err) {
         // Une erreur est survenue

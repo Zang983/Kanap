@@ -1,11 +1,10 @@
 /* ---------------- DÉFINITIONS DES VARIABLES -------------------*/
 id_article = new URL(window.location.href).searchParams.get("id");// on récupère l'id du produit a affiché
-let local = localStorage; // on initialise le localstorage
 let orderTab = [];//tableau contenant les articles de la commande
-if (local.getItem("orderTab") != null) {
+let colorField=document.getElementById("colors"),quantityField=document.getElementById("quantity");
+if (localStorage.getItem("orderTab") != null) {
     orderTab = JSON.parse(localStorage.getItem("orderTab"));
 }
-
 /* ---------------- DÉFINITIONS DES CLASS -------------------*/
 class item {
     constructor(id, color, quantity) {
@@ -56,7 +55,7 @@ function createItem(value) {
     /* Description de l'article */
     document.getElementById("description").textContent = value.description;
     /*Option couleur*/
-    let optionCouleur = document.getElementById("colors");
+    let optionCouleur = colorField;
     value.colors.forEach(function (element, key) {
         optionCouleur[key + 1] = new Option(element, key);
     });
@@ -74,49 +73,47 @@ function checkItemsTab(orderTab, actualItem) {
 /* Fonction ajoutant un item au panier*/
 function submit_item (article_id, orderTab) {
     /* Récupération des éléments du formulaire*/
-    let color_item = document.getElementById("colors");
-    let quantity_item = document.getElementById("quantity");
-    if (quantity_item.value <= 0 || color_item.value == "") {
-        alertUser(quantity_item.value, color_item.value)
+    let quantity_item = quantityField;
+    if (quantity_item.value <= 0 || colorField.value == "") {
+        alertUser(quantity_item.value, colorField.value)
     }
     else {
         /* Création d'un nouvel item et vérification si ce dernier existe*/
-        nouvelItem = new item(id_article, color_item.value, parseInt(quantity_item.value, 10));
+        nouvelItem = new item(id_article, colorField.value, parseInt(quantity_item.value, 10));
         if (!checkItemsTab(orderTab, nouvelItem)) {
             orderTab.push(nouvelItem);
-
         }
     }
-    local.setItem("orderTab", JSON.stringify(orderTab));
+    localStorage.setItem("orderTab", JSON.stringify(orderTab));
 }
 
 /*Fonction qui alerte l'utilsateur si la couleur ou la quantité n'est pas bonne.*/
 function alertUser(quantity, color) {
     if (quantity <= 0) {
-        document.getElementById("quantity").style.backgroundColor = ("red")
+        quantityField.style.backgroundColor = ("red")
     }
     else {
-        document.getElementById("quantity").style.backgroundColor = ("white")
+        quantityField.style.backgroundColor = ("white")
     }
     if (color == "") {
-        document.getElementById("colors").style.backgroundColor = ("red")
+        colorField.style.backgroundColor = ("red")
     }
     else {
-        document.getElementById("colors").style.backgroundColor = ("white")
+        colorField.style.backgroundColor = ("white")
     }
 }
-
-
 /* FIN DES FONCTIONS */
 recuperation(id_article);
-
-
 /* Écoute du bouton "ajouter au panier" */
 let submit_btn = document.getElementById("addToCart");
 submit_btn.addEventListener("click", function (e) {
     submit_item(id_article, orderTab);
 });
 
-
-
-
+/*Vérifie tout changement pour la couleur de fonds du formulaire*/
+colorField.addEventListener("change",function(e){
+    alertUser(quantityField.value, colorField.value)
+    });
+quantityField.addEventListener("change",function(e){
+    alertUser(quantityField.value, colorField.value)
+    });
