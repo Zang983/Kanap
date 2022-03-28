@@ -1,7 +1,8 @@
 /*Définition des variables*/
-let compteurArticle = 0;
-let compteurPrix = 0;
-let orderTab = JSON.parse(localStorage.getItem("orderTab"));
+let compteurArticle = 0, compteurPrix = 0, orderTab = JSON.parse(localStorage.getItem("orderTab"));
+let firstNameField = document.getElementById("firstName"), lastNameField = document.getElementById("lastName"), addressField = document.getElementById("address");
+let cityField = document.getElementById("city"), emailField = document.getElementById("email");
+let validityForm = 0;
 
 
 /* Début des fonctions */
@@ -18,6 +19,7 @@ function afficheItem(itemInOrderTab, article) {
     newBlock.innerHTML = text;
     document.querySelector("#cart__items").appendChild(newBlock);
 }
+/* Fonction qui tri le tableau par valeur ID pour regrouper les articles par ID.*/
 function sortOrderTab(orderTab) {
     if (orderTab != null) {
         orderTab.sort((function compare(a, b) {
@@ -28,15 +30,12 @@ function sortOrderTab(orderTab) {
             return 0;
         }));
     }
-
 }
 /* Supprimes un article du tableau présent dans localStorage*/
-function deleteInTab(id, color) {
+function deleteInTab(idItemToDel, colorItemToDel) {
     for (let i = 0; i < orderTab.length; i++) {
-
-        if (orderTab[i].id == id && orderTab[i].color == color) {
+        if (orderTab[i].id == idItemToDel && orderTab[i].color == colorItemToDel) {
             orderTab.splice(i, 1);
-            localStorage.clear();
             localStorage.setItem("orderTab", JSON.stringify(orderTab));
         }
     }
@@ -48,14 +47,13 @@ function deleteInDom(deletedBlock, value) {
 }
 /*Detecte lorsqu'on appuie sur un bouton supprimer*/
 function detectDeleteBtn(value) {
-
     let deleteBtns = document.querySelectorAll(".deleteItem");
     for (deleteBtn of deleteBtns) {
         let parentBlock = deleteBtn.parentNode.parentNode.parentNode.parentNode;
-        let id = parentBlock.getAttribute("data-id");
-        let color = parentBlock.getAttribute("data-color");
+        let idItemToDel = parentBlock.getAttribute("data-id");
+        let colorItemToDel = parentBlock.getAttribute("data-color");
         deleteBtn.addEventListener("click", function (e) {
-            deleteInTab(id, color);
+            deleteInTab(idItemToDel, colorItemToDel);
             deleteInDom(parentBlock, value);
         });
     }
@@ -90,7 +88,6 @@ function detectQuantityChange(value) {
             for (article of orderTab) {
                 if (article.id === id && article.color === color) {
                     article.quantity = itemQuantitys[i].value;
-                    localStorage.clear();
                     localStorage.setItem("orderTab", JSON.stringify(orderTab));
                     itemQuantitys[i].parentNode.firstChild.textContent = " Qté : " + article.quantity;//on modifie le dom
                     priceCart(value);
@@ -100,66 +97,93 @@ function detectQuantityChange(value) {
     }
 }
 
+
 /* Fonction vérifiant chaque champs du formulaire via une regex.*/
-function validateInput() {
+function validInput() {
     /*Tableau des éléments du formulaire*/
-    fields = [
-        document.getElementById("firstName"),
-        document.getElementById("lastName"),
-        document.getElementById("address"),
-        document.getElementById("city"),
-        document.getElementById("email")]
+    let fields = [firstNameField, lastNameField, addressField, cityField, emailField];
     /*Tableau des regex utilisées pour la validation des champs. Les deux premiers correspondent à une regex pour nom/prenom, suivi d'un pour l'adresse, la ville avec code postal et enfin l'email*/
-    regexs = [
-        new RegExp(/[0-9^\&\~\#\(\)\@\]\[\|\$\µ\!\§\;\\\/]/),//cherches les chiffres et quelques caractères spéciaux
-        new RegExp(/[0-9^\&\~\#\(\)\@\]\[\|\$\µ\!\§\;\\\/]/),
-        //new RegExp(/[a-zA-Z]{1,20}[\'\.\-]{0,1}[a-zA-Z]{0,12}/)
-        new RegExp(/.{33}/),//si plus de 33 caractères, trop de format d'adresse différent possible
-        new RegExp(/^[0-9]{5}\s{1,1}[a-zA-Z]{1,26}/),
-        new RegExp(/^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$/)
-    ]
+    regexs = [new RegExp(/[0-9^\&\~\#\(\)\@\]\[\|\$\µ\!\§\;\\\/]/),//cherche les chiffres et quelques caractères spéciaux
+    new RegExp(/[0-9^\&\~\#\(\)\@\]\[\|\$\µ\!\§\;\\\/]/),
+    new RegExp(/.{33}/),//si plus de 33 caractères, trop de format d'adresse différent possible
+    new RegExp(/^[0-9]{5}\s{1,1}[a-zA-Z]{1,26}/),
+    new RegExp(/^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$/)
+    ];
+
     for (let i = 0; i < fields.length; i++) {
-        let afficheErreur = fields[i].nextSibling.nextSibling;
         fields[i].addEventListener("input", function (e) {
-            if (regexs[i].test(fields[i].value)) {
-                afficheErreur.textContent = "Veuillez vérifier l'information saisie.";
-                console.log(regexs[i])
+            if (i < 3) {
+                if (regexs[i].test(fields[i].value)) {
+                    fields[i].nextSibling.nextSibling.textContent = "Veuillez vérifier l'information saisie.";
+                }
+                else {
+                    fields[i].nextSibling.nextSibling.textContent = "";
+
+                }
             }
             else {
-                afficheErreur.textContent = "";
-            }
+                if (!regexs[i].test(fields[i].value)) {
 
+                    fields[i].nextSibling.nextSibling.textContent = "Champs incomplet ou incorrect";
+                }
+                else {
+                    fields[i].nextSibling.nextSibling.textContent = "";
+                }
+            }
         });
     }
 }
-/* lors de l'appuie sur le bouton envoi vers l'api les*/
-function submitOrder() {
 
-    fetch("http://localhost:3000/api/products/order", {
-        method: “POST”,
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(jsonBody)
-    });
+/* lors de l'appuie sur le bouton envoi vers l'api les*/
+function createOrder() {
+    let products = [];
+    for (cases of orderTab) {
+        products.push(cases.id);
+    }
+    let contact = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        address: document.getElementById("address").value,
+        city: document.getElementById("city").value,
+        email: document.getElementById("email").value
+    }
+    let finalOrder = { contact, products };
+    sendOrderToServer(finalOrder);
 
 }
-function checkCommandBtn() {
+
+/*Fonction faisant la requête vers le server et envois sur la page de confirmation*/
+async function sendOrderToServer(finalOrder) {
+    let request = new Request('http://localhost:3000/api/products/order',
+        {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(finalOrder)
+        })
+    let response = fetch(request)
+        .then(function (res) {
+            if (res.ok) {
+                return res.json();
+            }
+        })
+        .then(function (value) {
+            localStorage.clear();//on vide le panier.
+            localStorage.setItem('id', value.orderId);//on enregistre l'id de la commande.
+            document.location.href = 'confirmation.html'//on redirige vers la page de confirmation.
+        })
+
+}
+function checkCommandBtn(orderTab) {
     let btn = document.getElementById("order");
     btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        if (validateForm() && orderTab[0] != undefined) {
-            /*Ici on appelle la fonction faisant la requête post et récupérant l'identifiant de la commande avant de faire la redirection*/
-            submitOrder();
-        }
-        else {
-            if (orderTab[0] === undefined) {
-                alert("Veuillez avoir au moins un article dans votre panier.");
-            }
-        }
+        createOrder(orderTab);
     });
 }
+
+
 /* Récupération des données de l'API et execution du contenu de la page.*/
 fetch("http://localhost:3000/api/products/")
     .then(function (res) {
@@ -179,8 +203,9 @@ fetch("http://localhost:3000/api/products/")
         detectDeleteBtn(value);
         detectQuantityChange(value);
         priceCart(value);
-        validateInput();
-        //checkCommandBtn(
+        validInput();
+        checkCommandBtn(orderTab);
+        
     })
     .catch(function (err) {
         // Une erreur est survenue
