@@ -1,11 +1,6 @@
-
 let contenu_api;
 /*
 Cette fonction va permettre d'afficher tout les items de la page.
-
-Possibilité d'amélioration : créer une fonction recevant en paramètre le type d'élément à ajouté et les arguments à y mettre.
-Il y'aurait donc la fonction createItem appelée par la fonction newItem qui ensuite se chargera de faire l'appendChild et la modification du noeud parent.
-
 */
 newItem= function(item_informations)
 {
@@ -34,7 +29,6 @@ newItem= function(item_informations)
     newBlock=document.createElement("p");
     newBlock.textContent=info.description;
     childNode.appendChild(newBlock);
-    
     return 1;
 }
 

@@ -98,7 +98,6 @@ function detectQuantityChange(value) {
     }
 }
 
-
 /* Fonction vérifiant chaque champs du formulaire via une regex.*/
 function validInput() {
     /*Tableau des éléments du formulaire*/
@@ -107,8 +106,8 @@ function validInput() {
     regexs = [new RegExp(/[0-9^\&\~\#\(\)\@\]\[\|\$\µ\!\§\;\\\/]/),//cherche les chiffres et quelques caractères spéciaux
     new RegExp(/[0-9^\&\~\#\(\)\@\]\[\|\$\µ\!\§\;\\\/]/),
     new RegExp(/.{33}/),//si plus de 33 caractères, trop de format d'adresse différent possible
-    new RegExp(/^[0-9]{5}\s{1,1}[a-zA-Z]{1,26}/),
-    new RegExp(/^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,15}$/)];
+    new RegExp(/^[0-9]{5}\s{1,1}[a-zA-Z]{1,26}/),//vérifie la présence d'un code postal suivi d'un nom de ville.
+    new RegExp(/^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,15}$/)];//vérifie l'adresse mail.
 
     for (let i = 0; i < fields.length; i++) {
         fields[i].addEventListener("input", function (e) {
@@ -133,7 +132,9 @@ function validInput() {
                     inputValidity[i]=1;
                 }
             }
+            checkValidtyForm()
         });
+
     }
 }
 
@@ -152,7 +153,6 @@ function createOrder() {
     }
     let finalOrder = { contact, products };
     sendOrderToServer(finalOrder);
-
 }
 
 /*Fonction faisant la requête vers le server et envois sur la page de confirmation*/
@@ -179,17 +179,33 @@ async function sendOrderToServer(finalOrder) {
         })
 
 }
+/*Vérifie si l'intégralité du formulaire est correct et défini l'état clickable ou non du bouton.*/ 
+function checkValidtyForm()
+{
+    validityForm=0;
+    for (let i=0;i<inputValidity.length;i++)/*Chaque champ valide ajoute 1 points, si on obtient 5 tout les champs sont valides*/
+    {
+        validityForm+=inputValidity[i]
+    }
+    if(validityForm==5)
+    {
+        document.getElementById("order").removeAttribute("disabled") 
+        return 1;
+    }
+    else
+    {
+        document.getElementById("order").setAttribute("disabled","") 
+        return 0;
+    }
+}
+/*Vérifie l'appuie sur le bouton de commande*/ 
 function checkCommandBtn(orderTab) {
     document.getElementById("order").addEventListener("click", function (e) {
         e.preventDefault();
-        validityForm=0;
-        for (let i=0;i<inputValidity.length;i++)/*Chaque champ valide ajoute 1 points, si on obtient 5 tout les champs sont valides*/
+        if(checkValidtyForm() && orderTab.length>0)/* S'ils le sont alors on peu créer la commande.*/
         {
-            console.log(i);
-            validityForm+=inputValidity[i]
-        }
-        if(validityForm==5)/* S'ils le sont alors on peu créer la commande.*/
         createOrder(orderTab);
+        }
     });
 }
 
@@ -210,13 +226,11 @@ fetch("http://localhost:3000/api/products/")
                 }
             }
         }
-        console.log(inputValidity);
-        console.log(typeof inputValidity)
-        console.log(inputValidity.length)
         detectDeleteBtn(value);
         detectQuantityChange(value);
         priceCart(value);
-        validInput(); 
+        validInput();
+        checkValidtyForm() 
         checkCommandBtn(orderTab);
     })
     .catch(function (err) {

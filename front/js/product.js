@@ -102,11 +102,21 @@ function alertUser(quantity, color) {
         colorField.style.backgroundColor = ("white")
     }
 }
+function countItems()
+{
+    console.log(orderTab);
+}
 /* FIN DES FONCTIONS */
 recuperation(id_article);
+/*Création d'un paragraphe pour confirmer l'ajout d'article au panier.*/
+newBlock=document.createElement("p");
+newBlock.textContent="";
+document.querySelector(".item__content").appendChild(newBlock);
 /* Écoute du bouton "ajouter au panier" */
 let submit_btn = document.getElementById("addToCart");
 submit_btn.addEventListener("click", function (e) {
+
+    newBlock.textContent="Vous venez d'ajouter "+quantityField.value + " article(s) dans votre panier";
     submit_item(id_article, orderTab);
 });
 
